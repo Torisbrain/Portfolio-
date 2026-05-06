@@ -1,16 +1,616 @@
-<section class="section">
-    <div class="section-heading">
-        <span class="section-num">// 00</span>
-        <h2 class="section-title">Project Registry</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS 3-Tier Architecture — Victoria Robin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --card: #151e2e;
+    --accent: #f97316;
+    --accent2: #38bdf8;
+    --accent3: #a78bfa;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --border: #1e293b;
+    --glow: rgba(249,115,22,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 60px 0 40px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .breadcrumb {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .breadcrumb span { color: var(--accent); }
+
+  .project-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(249,115,22,0.1);
+    border: 1px solid rgba(249,115,22,0.3);
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 2px;
+    margin-bottom: 28px;
+  }
+
+  .project-label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 6vw, 60px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .tagline {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 580px;
+    margin-bottom: 36px;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .meta-value { font-size: 13px; color: var(--accent2); }
+
+  /* ARCHITECTURE DIAGRAM */
+  .diagram-section {
+    margin: 56px 0;
+    animation: fadeUp 0.9s ease 0.2s both;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 28px;
+    color: var(--text);
+  }
+
+  .arch-diagram {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 36px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .arch-diagram::before {
+    content: 'ARCHITECTURE';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--border);
+  }
+
+  .tier {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    position: relative;
+  }
+
+  .tier-web { background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.2); }
+  .tier-app { background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.2); }
+  .tier-db  { background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.2); }
+
+  .tier-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .tier-web .tier-icon { background: rgba(56,189,248,0.15); }
+  .tier-app .tier-icon { background: rgba(249,115,22,0.15); }
+  .tier-db  .tier-icon { background: rgba(167,139,250,0.15); }
+
+  .tier-info { flex: 1; }
+  .tier-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .tier-web .tier-name { color: var(--accent2); }
+  .tier-app .tier-name { color: var(--accent); }
+  .tier-db  .tier-name { color: var(--accent3); }
+
+  .tier-detail { font-size: 11px; color: var(--muted); }
+
+  .tier-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tier-tag {
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  .tier-web .tier-tag { background: rgba(56,189,248,0.1); color: var(--accent2); }
+  .tier-app .tier-tag { background: rgba(249,115,22,0.1); color: var(--accent); }
+  .tier-db  .tier-tag { background: rgba(167,139,250,0.1); color: var(--accent3); }
+
+  .connector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 22px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    gap: 8px;
+  }
+
+  .connector::before, .connector::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 80px;
+  }
+
+  /* PROBLEM / SOLUTION */
+  .ps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 56px;
+    animation: fadeUp 0.9s ease 0.3s both;
+  }
+
+  @media (max-width: 600px) { .ps-grid { grid-template-columns: 1fr; } }
+
+  .ps-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ps-card.problem::before { background: rgba(239,68,68,0.05); }
+
+  .ps-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .ps-card.problem::before { background: #ef4444; }
+  .ps-card.solution::before { background: var(--accent); }
+
+  .ps-badge {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+
+  .problem .ps-badge { background: rgba(239,68,68,0.1); color: #ef4444; }
+  .solution .ps-badge { background: rgba(249,115,22,0.1); color: var(--accent); }
+
+  .ps-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .ps-card p {
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+
+  /* STACK */
+  .stack-section {
+    margin-bottom: 56px;
+    animation: fadeUp 0.9s ease 0.4s both;
+  }
+
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .stack-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .stack-item:hover {
+    border-color: rgba(249,115,22,0.4);
+    transform: translateY(-2px);
+  }
+
+  .stack-category {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stack-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* OUTCOMES */
+  .outcomes-section {
+    margin-bottom: 56px;
+    animation: fadeUp 0.9s ease 0.5s both;
+  }
+
+  .outcomes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .outcome-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .outcome-row:hover { background: rgba(249,115,22,0.04); }
+
+  .outcome-num {
+    font-size: 10px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  .outcome-text { font-size: 13px; line-height: 1.7; color: var(--text); }
+
+  /* LINKEDIN */
+  .linkedin-section {
+    margin-bottom: 80px;
+    animation: fadeUp 0.9s ease 0.6s both;
+  }
+
+  .linkedin-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .linkedin-header {
+    padding: 16px 24px;
+    background: rgba(56,189,248,0.05);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .li-logo {
+    width: 32px;
+    height: 32px;
+    background: #0077b5;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    font-family: 'Syne', sans-serif;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .li-post-label { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
+  .li-post-name { font-size: 13px; color: var(--text); font-weight: 600; }
+
+  .linkedin-body {
+    padding: 28px 24px;
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--text);
+    white-space: pre-line;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .footer-name { color: var(--accent); font-family: 'Syne', sans-serif; font-weight: 700; }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="breadcrumb">Victoria Robin / Portfolio / <span>Project 01</span></div>
+    <div class="project-label">AWS Cloud Infrastructure</div>
+    <h1>AWS <em>3-Tier</em><br>Architecture Capstone</h1>
+    <p class="tagline">Designed and deployed a production-grade, highly available cloud environment using infrastructure-as-code principles — zero downtime, full automation.</p>
+    <div class="meta-row">
+      <div class="meta-item">
+        <span class="meta-label">Timeline</span>
+        <span class="meta-value">April 2026</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Type</span>
+        <span class="meta-value">Capstone / Solo</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Status</span>
+        <span class="meta-value">Deployed ✓</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Role</span>
+        <span class="meta-value">Cloud / DevOps Engineer</span>
+      </div>
     </div>
-    <div class="meta-strip">
-        <a href="index-aws.html" class="meta-cell" style="text-decoration:none; display:block;">
-            <div class="meta-key">Cloud Infrastructure</div>
-            <div class="meta-val">AWS 3-Tier Architecture →</div>
-        </a>
-        <a href="index-automation.html" class="meta-cell" style="text-decoration:none; display:block;">
-            <div class="meta-key">AI Operations</div>
-            <div class="meta-val">Autonomous n8n Workflows →</div>
-        </a>
+  </header>
+
+  <!-- ARCHITECTURE -->
+  <section class="diagram-section">
+    <p class="section-label">// 01 — System Design</p>
+    <h2 class="section-title">Architecture Overview</h2>
+    <div class="arch-diagram">
+      <div class="tier tier-web">
+        <div class="tier-icon">🌐</div>
+        <div class="tier-info">
+          <div class="tier-name">Web Tier (Presentation Layer)</div>
+          <div class="tier-detail">Public-facing entry point with load balancing & SSL termination</div>
+        </div>
+        <div class="tier-tags">
+          <span class="tier-tag">Application Load Balancer</span>
+          <span class="tier-tag">EC2 Auto-Scaling</span>
+        </div>
+      </div>
+      <div class="connector">routes traffic ↓</div>
+      <div class="tier tier-app">
+        <div class="tier-icon">⚙️</div>
+        <div class="tier-info">
+          <div class="tier-name">Application Tier (Logic Layer)</div>
+          <div class="tier-detail">Business logic, API processing, isolated from public internet</div>
+        </div>
+        <div class="tier-tags">
+          <span class="tier-tag">EC2 Private Subnet</span>
+          <span class="tier-tag">Ansible Playbooks</span>
+        </div>
+      </div>
+      <div class="connector">reads / writes ↓</div>
+      <div class="tier tier-db">
+        <div class="tier-icon">🗄️</div>
+        <div class="tier-info">
+          <div class="tier-name">Database Tier (Data Layer)</div>
+          <div class="tier-detail">Managed relational DB with multi-AZ failover, encrypted at rest</div>
+        </div>
+        <div class="tier-tags">
+          <span class="tier-tag">AWS RDS</span>
+          <span class="tier-tag">Multi-AZ</span>
+          <span class="tier-tag">Encrypted</span>
+        </div>
+      </div>
     </div>
-</section>
+  </section>
+
+  <!-- PROBLEM / SOLUTION -->
+  <section>
+    <p class="section-label">// 02 — Problem & Solution</p>
+    <h2 class="section-title">The Challenge</h2>
+    <div class="ps-grid">
+      <div class="ps-card problem">
+        <span class="ps-badge">Problem</span>
+        <h3>Manual, Brittle Infrastructure</h3>
+        <p>Deploying cloud environments by hand leads to configuration drift, human error, and environments that can't be reliably reproduced. Without automation, scaling and disaster recovery become high-risk operations.</p>
+      </div>
+      <div class="ps-card solution">
+        <span class="ps-badge">Solution</span>
+        <h3>IaC-Driven Automated Deployment</h3>
+        <p>Provisioned the full 3-tier environment using Terraform for infrastructure and Ansible for configuration management — enabling consistent, repeatable, version-controlled deployments across environments.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section class="stack-section">
+    <p class="section-label">// 03 — Technical Stack</p>
+    <h2 class="section-title">Tools & Technologies</h2>
+    <div class="stack-grid">
+      <div class="stack-item"><span class="stack-category">IaC</span><span class="stack-name">Terraform</span></div>
+      <div class="stack-item"><span class="stack-category">Config Mgmt</span><span class="stack-name">Ansible</span></div>
+      <div class="stack-item"><span class="stack-category">Compute</span><span class="stack-name">AWS EC2</span></div>
+      <div class="stack-item"><span class="stack-category">Database</span><span class="stack-name">AWS RDS</span></div>
+      <div class="stack-item"><span class="stack-category">Networking</span><span class="stack-name">App Load Balancer</span></div>
+      <div class="stack-item"><span class="stack-category">Networking</span><span class="stack-name">VPC / Subnets</span></div>
+      <div class="stack-item"><span class="stack-category">Security</span><span class="stack-name">IAM / Security Groups</span></div>
+      <div class="stack-item"><span class="stack-category">Version Control</span><span class="stack-name">GitHub</span></div>
+      <div class="stack-item"><span class="stack-category">OS</span><span class="stack-name">Ubuntu (Linux)</span></div>
+      <div class="stack-item"><span class="stack-category">SSH</span><span class="stack-name">Bastion Host</span></div>
+    </div>
+  </section>
+
+  <!-- OUTCOMES -->
+  <section class="outcomes-section">
+    <p class="section-label">// 04 — Key Outcomes</p>
+    <h2 class="section-title">What Was Achieved</h2>
+    <div class="outcomes-list">
+      <div class="outcome-row"><span class="outcome-num">01</span><span class="outcome-text">Fully automated infrastructure provisioning — environment spun up from zero with a single Terraform apply command</span></div>
+      <div class="outcome-row"><span class="outcome-num">02</span><span class="outcome-text">High availability achieved through Multi-AZ RDS and Auto Scaling Groups, eliminating single points of failure</span></div>
+      <div class="outcome-row"><span class="outcome-num">03</span><span class="outcome-text">Security hardened with private subnets for app/DB tiers, least-privilege IAM roles, and encrypted data at rest</span></div>
+      <div class="outcome-row"><span class="outcome-num">04</span><span class="outcome-text">Infrastructure treated as code — versioned in Git, peer-reviewable, and fully auditable</span></div>
+      <div class="outcome-row"><span class="outcome-num">05</span><span class="outcome-text">Ansible playbooks automated server configuration, removing manual SSH-and-configure steps from deployment</span></div>
+    </div>
+  </section>
+
+  <!-- LINKEDIN POST -->
+  <section class="linkedin-section">
+    <p class="section-label">// 05 — LinkedIn Post</p>
+    <h2 class="section-title">Share This Achievement</h2>
+    <div class="linkedin-card">
+      <div class="linkedin-header">
+        <div class="li-logo">in</div>
+        <div>
+          <div class="li-post-name">Victoria Robin</div>
+          <div class="li-post-label">Ready to post</div>
+        </div>
+      </div>
+      <div class="linkedin-body">🚀 Just completed my AWS 3-Tier Architecture Capstone — and I'm proud of what I built.
+
+As part of the She Code Africa DevOps Academy (Cohort 3), I designed and deployed a fully automated, production-grade cloud environment from scratch.
+
+Here's what the stack looks like:
+🔷 Web Tier — Application Load Balancer + EC2 Auto Scaling
+🔶 App Tier — EC2 in private subnets, configured with Ansible
+🟣 Data Tier — AWS RDS with Multi-AZ failover, encrypted at rest
+⚙️ All provisioned with Terraform — infrastructure as code, end to end.
+
+What I learned:
+✅ Writing Terraform modules for repeatable, scalable deployments
+✅ Using Ansible playbooks to automate server configuration
+✅ Designing secure VPC architecture with public/private subnet separation
+✅ Implementing least-privilege IAM and bastion host access
+
+This project pushed me beyond tutorials. Every design decision — from subnet CIDR blocks to security group rules — had to be intentional.
+
+The cloud isn't just somewhere things live. It's something you build, architect, and own.
+
+If you're working in DevOps, cloud infrastructure, or just starting your AWS journey — let's connect. 🤝
+
+#AWS #DevOps #CloudEngineering #Terraform #Ansible #SheCodeAfrica #WomenInTech #CloudComputing #NYSC</div>
+    </div>
+  </section>
+
+  <footer>
+    <span><span class="footer-name">Victoria Robin</span> — Portfolio 2026</span>
+    <span>Port Harcourt, Nigeria</span>
+  </footer>
+
+</div>
+</body>
+</html>

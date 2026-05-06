@@ -1,16 +1,613 @@
-<section class="section">
-    <div class="section-heading">
-        <span class="section-num">// 00</span>
-        <h2 class="section-title">Project Registry</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Automation Workflows — Victoria Robin</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0eb;
+    --surface: #ede8e2;
+    --card: #ffffff;
+    --ink: #1a1410;
+    --accent: #c2410c;
+    --accent2: #0f766e;
+    --accent3: #6d28d9;
+    --muted: #78716c;
+    --border: #d6cfc7;
+    --warm: #fef3c7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+  }
+
+  /* Noise texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.4;
+  }
+
+  .container { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- TOP BAR ---- */
+  .topbar {
+    border-bottom: 2px solid var(--ink);
+    padding: 14px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    animation: fadeIn 0.6s ease both;
+  }
+
+  .topbar-left { display: flex; gap: 24px; color: var(--muted); }
+  .topbar-right { color: var(--accent); font-weight: 700; }
+
+  /* ---- HERO ---- */
+  header {
+    padding: 60px 0 48px;
+    position: relative;
+    animation: slideIn 0.8s ease both;
+  }
+
+  .project-index {
+    font-size: 120px;
+    font-weight: 700;
+    color: var(--surface);
+    position: absolute;
+    top: 20px;
+    right: -10px;
+    line-height: 1;
+    user-select: none;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: -0.05em;
+  }
+
+  .label-pill {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  h1 .highlight {
+    background: var(--accent);
+    color: white;
+    padding: 0 6px;
+    display: inline-block;
+  }
+
+  .tagline {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--muted);
+    max-width: 520px;
+    margin-bottom: 36px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border: 2px solid var(--ink);
+    position: relative;
+    z-index: 1;
+  }
+
+  .meta-cell {
+    padding: 14px 20px;
+    border-right: 2px solid var(--ink);
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .meta-cell:last-child { border-right: none; }
+  .meta-key { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .meta-val { font-size: 12px; font-weight: 700; color: var(--ink); }
+
+  /* ---- WORKFLOW VIZ ---- */
+  .section { margin: 56px 0; animation: fadeUp 0.8s ease 0.2s both; }
+
+  .section-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .section-num {
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .workflow-viz {
+    background: var(--card);
+    border: 2px solid var(--ink);
+    padding: 32px 24px;
+  }
+
+  .wf-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .wf-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .wf-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .wf-box {
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    border: 2px solid;
+    min-width: 100px;
+  }
+
+  .wf-type { font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  .wf-trigger .wf-box { border-color: var(--accent); color: var(--accent); background: rgba(194,65,12,0.06); }
+  .wf-process .wf-box { border-color: var(--accent2); color: var(--accent2); background: rgba(15,118,110,0.06); }
+  .wf-output .wf-box { border-color: var(--accent3); color: var(--accent3); background: rgba(109,40,217,0.06); }
+
+  .wf-arrow {
+    font-size: 16px;
+    color: var(--muted);
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  .wf-row-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  /* ---- PS SECTION ---- */
+  .ps-section { margin: 56px 0; animation: fadeUp 0.8s ease 0.3s both; }
+
+  .ps-box {
+    border: 2px solid var(--ink);
+    padding: 28px;
+    margin-bottom: 2px;
+    position: relative;
+  }
+
+  .ps-box.problem { background: #fff5f5; }
+  .ps-box.solution { background: #f0fdf4; }
+
+  .ps-corner {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .problem .ps-corner { color: #dc2626; }
+  .solution .ps-corner { color: var(--accent2); }
+
+  .ps-box h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .ps-box p { font-size: 12px; line-height: 1.9; color: var(--muted); }
+
+  /* ---- STACK ---- */
+  .stack-section { margin: 56px 0; animation: fadeUp 0.8s ease 0.35s both; }
+
+  .stack-table { width: 100%; border-collapse: collapse; }
+
+  .stack-table th {
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    text-align: left;
+  }
+
+  .stack-table td {
+    padding: 12px 16px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .stack-table tr:nth-child(even) td { background: var(--surface); }
+  .stack-table tr:last-child td { border-bottom: 2px solid var(--ink); }
+
+  .role-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 20px;
+  }
+
+  /* ---- OUTCOMES ---- */
+  .outcomes-section { margin: 56px 0; animation: fadeUp 0.8s ease 0.4s both; }
+
+  .outcome-item {
+    display: flex;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .outcome-item:first-child { border-top: 2px solid var(--ink); }
+  .outcome-item:last-child { border-bottom: 2px solid var(--ink); }
+
+  .outcome-mark {
+    width: 24px;
+    height: 24px;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .outcome-text { font-size: 13px; line-height: 1.7; }
+
+  /* ---- LINKEDIN ---- */
+  .linkedin-section { margin: 56px 0 80px; animation: fadeUp 0.8s ease 0.5s both; }
+
+  .li-post-card {
+    border: 2px solid var(--ink);
+    background: white;
+    overflow: hidden;
+  }
+
+  .li-header {
+    background: var(--warm);
+    border-bottom: 2px solid var(--ink);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .li-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--ink);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .li-meta { display: flex; flex-direction: column; }
+  .li-name { font-size: 13px; font-weight: 700; }
+  .li-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+
+  .li-body {
+    padding: 28px 24px;
+    font-size: 13px;
+    line-height: 1.9;
+    white-space: pre-line;
+    color: var(--ink);
+  }
+
+  .li-footer {
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* FOOTER */
+  .site-footer {
+    border-top: 2px solid var(--ink);
+    padding: 24px 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .site-footer strong { color: var(--ink); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <span>Victoria Robin</span>
+      <span>Portfolio 2026</span>
     </div>
+    <div class="topbar-right">Project_02 / Automation</div>
+  </div>
+
+  <header>
+    <div class="project-index">02</div>
+    <div class="label-pill">AI Automation Engineering</div>
+    <h1>Autonomous<br><span class="highlight">n8n & Make.com</span><br>Workflows</h1>
+    <p class="tagline">Built end-to-end autonomous pipelines integrating multiple APIs and LLMs — from news aggregation to intelligent lead management — eliminating manual data work entirely.</p>
     <div class="meta-strip">
-        <a href="index-aws.html" class="meta-cell" style="text-decoration:none; display:block;">
-            <div class="meta-key">Cloud Infrastructure</div>
-            <div class="meta-val">AWS 3-Tier Architecture →</div>
-        </a>
-        <a href="index-automation.html" class="meta-cell" style="text-decoration:none; display:block;">
-            <div class="meta-key">AI Operations</div>
-            <div class="meta-val">Autonomous n8n Workflows →</div>
-        </a>
+      <div class="meta-cell">
+        <div class="meta-key">Timeline</div>
+        <div class="meta-val">April 2026</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-key">Training</div>
+        <div class="meta-val">Loubby AI</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-key">Type</div>
+        <div class="meta-val">Automation / Solo</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-key">Status</div>
+        <div class="meta-val">Live ✓</div>
+      </div>
     </div>
-</section>
+  </header>
+
+  <!-- WORKFLOW VIZ -->
+  <section class="section">
+    <div class="section-heading">
+      <span class="section-num">// 01</span>
+      <h2 class="section-title">Workflow Architecture</h2>
+    </div>
+    <div class="workflow-viz">
+      <div class="wf-label">Pipeline A — News Aggregator</div>
+      <div class="wf-row">
+        <div class="wf-node wf-trigger">
+          <div class="wf-box">RSS / API Sources</div>
+          <div class="wf-type">Trigger</div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-node wf-process">
+          <div class="wf-box">LLM Summariser</div>
+          <div class="wf-type">Process</div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-node wf-process">
+          <div class="wf-box">Filter & Tag</div>
+          <div class="wf-type">Logic</div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-node wf-output">
+          <div class="wf-box">Slack / Email</div>
+          <div class="wf-type">Output</div>
+        </div>
+      </div>
+      <br>
+      <div class="wf-label">Pipeline B — Lead Management System</div>
+      <div class="wf-row">
+        <div class="wf-node wf-trigger">
+          <div class="wf-box">Form / Webhook</div>
+          <div class="wf-type">Trigger</div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-node wf-process">
+          <div class="wf-box">Enrich + Score</div>
+          <div class="wf-type">AI Process</div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-node wf-process">
+          <div class="wf-box">CRM Update</div>
+          <div class="wf-type">Integration</div>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-node wf-output">
+          <div class="wf-box">Auto-Nurture</div>
+          <div class="wf-type">Output</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM / SOLUTION -->
+  <section class="ps-section">
+    <div class="section-heading">
+      <span class="section-num">// 02</span>
+      <h2 class="section-title">Problem & Solution</h2>
+    </div>
+    <div class="ps-box problem">
+      <span class="ps-corner">Problem</span>
+      <h3>Manual Processes = Slow, Leaky Funnels</h3>
+      <p>Businesses were spending hours manually gathering news, qualifying leads, and updating CRMs — error-prone tasks that introduced delays, inconsistencies, and lost opportunities. No scalability without more headcount.</p>
+    </div>
+    <div class="ps-box solution">
+      <span class="ps-corner">Solution</span>
+      <h3>LLM-Powered Autonomous Pipelines</h3>
+      <p>Designed and deployed zero-touch workflows using n8n and Make.com that pull data, process it with LLM intelligence, and route outputs — running 24/7 without human intervention. From a 3-hour task to a 3-minute pipeline.</p>
+    </div>
+  </section>
+
+  <!-- STACK -->
+  <section class="stack-section">
+    <div class="section-heading">
+      <span class="section-num">// 03</span>
+      <h2 class="section-title">Technical Stack</h2>
+    </div>
+    <table class="stack-table">
+      <thead>
+        <tr>
+          <th>Tool / Technology</th>
+          <th>Category</th>
+          <th>Role in Project</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>n8n</td><td>Automation Platform</td><td><span class="role-badge">Workflow Orchestration</span></td></tr>
+        <tr><td>Make.com</td><td>Automation Platform</td><td><span class="role-badge">Visual Pipeline Builder</span></td></tr>
+        <tr><td>OpenAI / LLM APIs</td><td>AI Layer</td><td><span class="role-badge">Summarisation & Scoring</span></td></tr>
+        <tr><td>REST APIs</td><td>Data Sources</td><td><span class="role-badge">News & Lead Ingestion</span></td></tr>
+        <tr><td>GoHighLevel / HubSpot</td><td>CRM</td><td><span class="role-badge">Lead Routing & Storage</span></td></tr>
+        <tr><td>Webhooks</td><td>Integration</td><td><span class="role-badge">Real-time Event Triggers</span></td></tr>
+        <tr><td>Slack / Email SMTP</td><td>Delivery</td><td><span class="role-badge">Notification Output</span></td></tr>
+        <tr><td>JSON / HTTP Modules</td><td>Data Handling</td><td><span class="role-badge">Parsing & Transformation</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- OUTCOMES -->
+  <section class="outcomes-section">
+    <div class="section-heading">
+      <span class="section-num">// 04</span>
+      <h2 class="section-title">Key Outcomes</h2>
+    </div>
+    <div>
+      <div class="outcome-item">
+        <div class="outcome-mark">✓</div>
+        <div class="outcome-text">News aggregator runs fully autonomously — sources, summarises, and delivers industry updates on schedule without any manual input</div>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-mark">✓</div>
+        <div class="outcome-text">Lead management pipeline cuts manual qualification time dramatically — every new lead is enriched, scored, and routed in under 60 seconds</div>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-mark">✓</div>
+        <div class="outcome-text">LLM integration enables intelligent decision-making inside workflows — not just data movement, but AI-powered reasoning at each step</div>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-mark">✓</div>
+        <div class="outcome-text">Multi-platform architecture: workflows span n8n, Make.com, CRM APIs, and communication tools — demonstrating real cross-system integration skill</div>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-mark">✓</div>
+        <div class="outcome-text">Completed as part of an intensive AI automation training with Loubby AI — skills immediately applied to real client-ready systems</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LINKEDIN -->
+  <section class="linkedin-section">
+    <div class="section-heading">
+      <span class="section-num">// 05</span>
+      <h2 class="section-title">LinkedIn Post</h2>
+    </div>
+    <div class="li-post-card">
+      <div class="li-header">
+        <div class="li-avatar">VR</div>
+        <div class="li-meta">
+          <span class="li-name">Victoria Robin</span>
+          <span class="li-sub">Data Scientist · Virtual Assistant · Tech-Ops</span>
+        </div>
+      </div>
+      <div class="li-body">⚡ I just built workflows that work while I sleep — and it's changed how I think about automation.
+
+After completing an intensive AI automation programme with Loubby AI, I shipped two production-ready pipelines:
+
+📰 News Aggregator Pipeline (n8n)
+Pulls from multiple RSS/API sources → summarises with LLMs → filters by relevance → delivers to Slack/email. Zero manual steps. Fully scheduled. Done.
+
+🎯 Lead Management System (Make.com)
+New lead comes in via webhook → enriched and scored by AI → CRM updated → automated nurture sequence triggered. What used to take hours, now takes seconds.
+
+Tools used:
+→ n8n + Make.com for workflow orchestration
+→ LLM APIs for intelligent processing
+→ GoHighLevel + HubSpot for CRM integration
+→ REST APIs + Webhooks for real-time triggers
+
+What I realised: automation isn't about replacing people. It's about freeing them for the thinking that actually requires a human.
+
+If your business is still doing things manually that a well-designed workflow could handle — let's talk. 🤝
+
+#Automation #n8n #MakeCom #AIAutomation #NoCode #LowCode #WorkflowAutomation #LoubbyAI #TechOps #VirtualAssistant #WomenInTech</div>
+      <div class="li-footer">Ready to copy and post on LinkedIn</div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <span><strong>Victoria Robin</strong> — AI Automation Engineer</span>
+    <span>Portfolio 2026 · Port Harcourt, Nigeria</span>
+  </footer>
+
+</div>
+</body>
+</html>

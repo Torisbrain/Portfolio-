@@ -1,16 +1,55 @@
-<section class="section">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Victoria Robin | AI & DevOps Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #f5f0eb; --surface: #ede8e2; --card: #ffffff; --ink: #1a1410; --accent: #c2410c; --muted: #78716c; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Space Mono', monospace; padding: 40px 20px; }
+  .container { max-width: 600px; margin: 0 auto; border: 2px solid var(--ink); padding: 40px; background: white; position: relative; }
+  .label-pill { display: inline-block; background: var(--ink); color: var(--bg); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 14px; margin-bottom: 24px; }
+  h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: -0.03em; }
+  .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+  .section-heading { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; border-top: 2px solid var(--ink); padding-top: 20px; }
+  .section-num { font-size: 11px; color: var(--accent); }
+  .section-title { font-size: 18px; font-weight: 700; }
+  .meta-strip { display: flex; flex-direction: column; gap: 12px; }
+  .meta-cell { display: block; padding: 18px; border: 2px solid var(--ink); text-decoration: none; color: var(--ink); transition: 0.2s; }
+  .meta-cell:hover { background: var(--accent); color: white; border-color: var(--accent); }
+  .meta-key { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: inherit; margin-bottom: 4px; opacity: 0.8; }
+  .meta-val { font-size: 14px; font-weight: 700; }
+  .footer { margin-top: 40px; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="label-pill">Tech-Ops // Automation</div>
+  <h1>Victoria Robin</h1>
+  <p class="subtitle">Data Scientist & AI Automation Fellow building autonomous infrastructure and cloud systems.</p>
+  
+  <section>
     <div class="section-heading">
-        <span class="section-num">// 00</span>
-        <h2 class="section-title">Project Registry</h2>
+      <span class="section-num">// 00</span>
+      <h2 class="section-title">Project Registry</h2>
     </div>
     <div class="meta-strip">
-        <a href="index-aws.html" class="meta-cell" style="text-decoration:none; display:block;">
-            <div class="meta-key">Cloud Infrastructure</div>
-            <div class="meta-val">AWS 3-Tier Architecture →</div>
-        </a>
-        <a href="index-automation.html" class="meta-cell" style="text-decoration:none; display:block;">
-            <div class="meta-key">AI Operations</div>
-            <div class="meta-val">Autonomous n8n Workflows →</div>
-        </a>
+      <a href="index-aws.html" class="meta-cell">
+        <div class="meta-key">Cloud Infrastructure</div>
+        <div class="meta-val">AWS 3-Tier Architecture →</div>
+      </a>
+      <a href="index-automation.html" class="meta-cell">
+        <div class="meta-key">AI Operations</div>
+        <div class="meta-val">Autonomous n8n Workflows →</div>
+      </a>
     </div>
-</section>
+  </section>
+
+  <footer class="footer">
+    Port Harcourt, Nigeria // 2026 // Qubators AI Foundry
+  </footer>
+</div>
+</body>
+</html>
